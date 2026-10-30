@@ -131,7 +131,7 @@ The workbook's starter Attendance / Performance / Hiring sheets were **not** use
 ## Reproduce
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-pipeline.txt
 ./run_all.sh                     # ingest → synthetic → DuckDB model → analytics → workbook/charts → deck
 ```
 
