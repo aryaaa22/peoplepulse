@@ -1,0 +1,10 @@
+job_role,role_family,is_critical,records,active,exits,attrition_rate,avg_risk_active,high_risk_active,expected_exits_12m,avg_tenure_active,avg_income_active
+Sales Executive,Commercial,True,326,269.0,57.0,0.1916,0.154,34,41.4,7.7,6805.0
+Manufacturing Director,Leadership,True,145,135.0,10.0,0.0714,0.0663,0,8.9,7.5,7290.0
+Manager,Leadership,True,102,97.0,5.0,0.0503,0.0596,2,5.8,14.4,17201.0
+Research Director,Leadership,True,80,78.0,2.0,0.0253,0.0373,0,2.9,10.5,15947.0
+Laboratory Technician,Research & Lab,False,259,197.0,62.0,0.2719,0.1926,30,37.9,5.6,3337.0
+Research Scientist,Research & Lab,False,292,245.0,47.0,0.175,0.1364,24,33.4,5.3,3328.0
+Sales Representative,Commercial,False,83,50.0,33.0,0.4962,0.3272,24,16.4,3.5,2798.0
+Healthcare Representative,Commercial,False,131,122.0,9.0,0.0711,0.0915,5,11.2,8.2,7454.0
+Human Resources,Support functions,False,52,40.0,12.0,0.2609,0.182,5,7.3,5.7,4392.0

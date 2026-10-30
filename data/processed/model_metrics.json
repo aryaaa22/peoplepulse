@@ -1,0 +1,43 @@
+{
+  "logistic_regression": {
+    "roc_auc": 0.773,
+    "pr_auc": 0.453,
+    "brier": 0.1119
+  },
+  "gradient_boosting": {
+    "roc_auc": 0.775,
+    "pr_auc": 0.454,
+    "brier": 0.112
+  },
+  "chosen_model": "logistic_regression",
+  "cv": "5-fold stratified, out-of-fold probabilities",
+  "tier_thresholds": {
+    "high": 0.3128,
+    "medium": 0.1613
+  },
+  "tier_performance": [
+    {
+      "tier": "High",
+      "records": 228,
+      "exits": 104,
+      "exit_proportion": 0.456,
+      "share_of_all_exits": 0.439
+    },
+    {
+      "tier": "Low",
+      "records": 932,
+      "exits": 69,
+      "exit_proportion": 0.074,
+      "share_of_all_exits": 0.291
+    },
+    {
+      "tier": "Medium",
+      "records": 310,
+      "exits": 64,
+      "exit_proportion": 0.206,
+      "share_of_all_exits": 0.27
+    }
+  ],
+  "overall_exit_proportion": 0.1612,
+  "low_pay_quartile_threshold": 2911.0
+}

@@ -1,0 +1,21 @@
+{
+  "scorecard_weights": {
+    "attrition_rate": 0.3,
+    "high_risk_share": 0.2,
+    "low_satisfaction_share": 0.15,
+    "overtime_share": 0.1,
+    "promotion_stalled_share": 0.05,
+    "absenteeism_rate_syn": 0.1,
+    "avg_time_to_fill_syn": 0.1
+  },
+  "forecast": {
+    "first_year_exit_proportion": 0.3636,
+    "sims": 2000,
+    "quarters": [
+      "2026Q4",
+      "2027Q1",
+      "2027Q2",
+      "2027Q3"
+    ]
+  }
+}

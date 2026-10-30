@@ -1,0 +1,41 @@
+dimension,value,records,exits,exit_proportion,ci_low,ci_high,lift_vs_overall,significant
+Department,Sales,446,92.0,0.2063,0.1713,0.2463,1.2794,True
+Department,Human Resources,63,12.0,0.1905,0.1125,0.3041,1.1814,False
+Department,Research & Development,961,133.0,0.1384,0.118,0.1617,0.8584,False
+Job role,Sales Executive,326,57.0,0.1748,0.1375,0.2198,1.0845,False
+Job role,Research Scientist,292,47.0,0.161,0.1233,0.2075,0.9984,False
+Job role,Manufacturing Director,145,10.0,0.069,0.0379,0.1223,0.4278,True
+Job role,Manager,102,5.0,0.049,0.0211,0.1097,0.304,True
+Job role,Sales Representative,83,33.0,0.3976,0.2991,0.5052,2.4661,True
+Job role,Research Director,80,2.0,0.025,0.0069,0.0866,0.1551,True
+Job role,Human Resources,52,12.0,0.2308,0.1372,0.3613,1.4314,False
+Job role,Laboratory Technician,259,62.0,0.2394,0.1915,0.2949,1.4848,True
+Job role,Healthcare Representative,131,9.0,0.0687,0.0366,0.1254,0.4261,True
+Grade,G2,534,52.0,0.0974,0.075,0.1255,0.604,True
+Grade,G1,543,143.0,0.2634,0.2281,0.302,1.6334,True
+Grade,G3,218,32.0,0.1468,0.1059,0.1999,0.9105,False
+Grade,G4,106,5.0,0.0472,0.0203,0.1057,0.2926,True
+Grade,G5,69,5.0,0.0725,0.0313,0.1587,0.4495,True
+Tenure band,6–10 Years,448,55.0,0.1228,0.0955,0.1564,0.7615,True
+Tenure band,0–1 Years,215,75.0,0.3488,0.2883,0.4147,2.1637,True
+Tenure band,2–3 Years,255,47.0,0.1843,0.1415,0.2365,1.1432,False
+Tenure band,4–5 Years,306,40.0,0.1307,0.0975,0.1731,0.8108,False
+Tenure band,10+ Years,246,20.0,0.0813,0.0532,0.1222,0.5043,True
+Overtime,No,1054,110.0,0.1044,0.0873,0.1243,0.6473,True
+Overtime,Yes,416,127.0,0.3053,0.263,0.3512,1.8936,True
+Job satisfaction,1,289,66.0,0.2284,0.1837,0.2801,1.4165,True
+Job satisfaction,4,459,52.0,0.1133,0.0874,0.1456,0.7027,True
+Job satisfaction,2,280,46.0,0.1643,0.1255,0.2122,1.019,False
+Job satisfaction,3,442,73.0,0.1652,0.1335,0.2026,1.0244,False
+Age band,35–44,505,51.0,0.101,0.0776,0.1304,0.6264,True
+Age band,25–34,554,112.0,0.2022,0.1708,0.2376,1.2539,True
+Age band,<25,97,38.0,0.3918,0.3005,0.4912,2.4299,True
+Age band,45+,314,36.0,0.1146,0.084,0.1546,0.7111,True
+Gender,Female,588,87.0,0.148,0.1215,0.1789,0.9177,False
+Gender,Male,882,150.0,0.1701,0.1467,0.1963,1.0549,False
+Manager tenure,3+ yrs,787,91.0,0.1156,0.0951,0.1399,0.7172,True
+Manager tenure,New manager (<1 yr),263,85.0,0.3232,0.2696,0.3819,2.0046,True
+Manager tenure,1–2 yrs,420,61.0,0.1452,0.1148,0.1822,0.9008,False
+Promotion gap,0–1 yrs,938,159.0,0.1695,0.1469,0.1949,1.0514,False
+Promotion gap,2–4 yrs,272,41.0,0.1507,0.1131,0.1981,0.9349,False
+Promotion gap,5+ yrs,260,37.0,0.1423,0.105,0.19,0.8827,False

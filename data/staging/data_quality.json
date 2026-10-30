@@ -1,0 +1,72 @@
+[
+  {
+    "table": "employee_master",
+    "severity": "info",
+    "issue": "hire_date blank for all 1470 rows (not in IBM source); left blank, not imputed"
+  },
+  {
+    "table": "employee_master",
+    "severity": "info",
+    "issue": "exit_date blank for all 1470 rows (not in IBM source); left blank, not imputed"
+  },
+  {
+    "table": "employee_master",
+    "severity": "info",
+    "issue": "location = 'Not provided' for all rows; location analysis not possible"
+  },
+  {
+    "table": "employee_master",
+    "severity": "ok",
+    "issue": "Tenure consistency checks: 0 violating rows"
+  },
+  {
+    "table": "employee_master",
+    "severity": "ok",
+    "issue": "Attrition vs Employment_Status mismatches: 0"
+  },
+  {
+    "table": "sample_attendance",
+    "severity": "high",
+    "issue": "4 IDs not in Employee_Master: E0003, E0006, E0009, E0017"
+  },
+  {
+    "table": "sample_performance",
+    "severity": "high",
+    "issue": "4 IDs not in Employee_Master: E0003, E0006, E0009, E0017"
+  },
+  {
+    "table": "sample_hiring",
+    "severity": "high",
+    "issue": "3 IDs not in Employee_Master: E0003, E0006, E0009"
+  },
+  {
+    "table": "sample_hiring",
+    "severity": "high",
+    "issue": "4 requisitions whose department differs from the hired employee's master department"
+  },
+  {
+    "table": "sample_hiring",
+    "severity": "high",
+    "issue": "5 candidates filled in 2026 but with >1 year tenure in master (ID collision with IBM records)"
+  },
+  {
+    "table": "sample_hiring",
+    "severity": "medium",
+    "issue": "Early_Exit_Within_1_Year populated for hires filled <1 year before the export date (outcome not yet observable)"
+  },
+  {
+    "table": "kpi_summary",
+    "severity": "high",
+    "issue": "'Exited employee records' formula uses COUNTA(Employee_ID) -> 1,470; should be COUNTIF(Attrition,\"Yes\") -> 237"
+  },
+  {
+    "table": "kpi_summary",
+    "severity": "low",
+    "issue": "'Employees with performance records' COUNTA includes the header row (21 vs 20)"
+  },
+  {
+    "table": "dimensions",
+    "severity": "medium",
+    "issue": "Tenure bands (<1, 1–3, 3–5, 5+) do not match Employee_Master Tenure_Band (0–1, 2–3, 4–5, 6–10, 10+); grade list G1–G4 omits G5 (69 rows)"
+  }
+]

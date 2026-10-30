@@ -1,0 +1,37 @@
+role_family,job_role,review_period,employees,avg_productivity,is_synthetic
+Commercial,Healthcare Representative,2025-Q4,130,64.7,True
+Commercial,Healthcare Representative,2026-Q1,129,65.6,True
+Commercial,Healthcare Representative,2026-Q2,127,64.4,True
+Commercial,Healthcare Representative,2026-Q3,123,63.8,True
+Commercial,Sales Executive,2025-Q4,319,64.8,True
+Commercial,Sales Executive,2026-Q1,310,64.9,True
+Commercial,Sales Executive,2026-Q2,302,63.8,True
+Commercial,Sales Executive,2026-Q3,289,64.1,True
+Commercial,Sales Representative,2025-Q4,80,63.2,True
+Commercial,Sales Representative,2026-Q1,71,63.8,True
+Commercial,Sales Representative,2026-Q2,67,64.2,True
+Commercial,Sales Representative,2026-Q3,58,64.8,True
+Leadership,Manager,2025-Q4,100,67.4,True
+Leadership,Manager,2026-Q1,99,67.4,True
+Leadership,Manager,2026-Q2,100,67.6,True
+Leadership,Manager,2026-Q3,100,68.4,True
+Leadership,Manufacturing Director,2025-Q4,143,64.6,True
+Leadership,Manufacturing Director,2026-Q1,143,65.3,True
+Leadership,Manufacturing Director,2026-Q2,139,65.9,True
+Leadership,Manufacturing Director,2026-Q3,138,66.1,True
+Leadership,Research Director,2025-Q4,80,67.3,True
+Leadership,Research Director,2026-Q1,78,67.5,True
+Leadership,Research Director,2026-Q2,78,67.8,True
+Leadership,Research Director,2026-Q3,78,69.4,True
+Research & Lab,Laboratory Technician,2025-Q4,257,62.8,True
+Research & Lab,Laboratory Technician,2026-Q1,238,63.2,True
+Research & Lab,Laboratory Technician,2026-Q2,222,64.3,True
+Research & Lab,Laboratory Technician,2026-Q3,212,63.9,True
+Research & Lab,Research Scientist,2025-Q4,288,63.2,True
+Research & Lab,Research Scientist,2026-Q1,274,63.5,True
+Research & Lab,Research Scientist,2026-Q2,264,63.8,True
+Research & Lab,Research Scientist,2026-Q3,253,63.4,True
+Support functions,Human Resources,2025-Q4,52,62.6,True
+Support functions,Human Resources,2026-Q1,44,63.4,True
+Support functions,Human Resources,2026-Q2,42,63.4,True
+Support functions,Human Resources,2026-Q3,42,63.7,True

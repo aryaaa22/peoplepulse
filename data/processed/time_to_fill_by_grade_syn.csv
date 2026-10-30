@@ -1,0 +1,12 @@
+grade,department,hires,avg_time_to_fill
+G1,Human Resources,5,33.0
+G1,Research & Development,103,38.7
+G1,Sales,28,31.9
+G2,Research & Development,30,44.3
+G2,Sales,19,45.7
+G3,Research & Development,9,44.9
+G3,Sales,9,45.9
+G4,Research & Development,2,46.0
+G4,Sales,3,44.3
+G5,Research & Development,5,89.0
+G5,Sales,2,63.5

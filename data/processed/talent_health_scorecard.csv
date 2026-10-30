@@ -1,0 +1,4 @@
+department,records,active,exits,attrition_rate,high_risk_share,overtime_share,low_satisfaction_share,promotion_stalled_share,absenteeism_rate_syn,avg_productivity_syn,avg_time_to_fill_syn,talent_health_score,rag
+Human Resources,63,51.0,12.0,0.2105,0.098,0.2353,0.4706,0.1569,0.0343,64.8491,33.0,79.5,Amber
+Research & Development,961,828.0,133.0,0.1487,0.0725,0.2379,0.3671,0.1691,0.0341,64.9813,42.0067,99.0,Green
+Sales,446,354.0,92.0,0.23,0.1667,0.226,0.3644,0.2119,0.0329,64.4413,39.9016,59.6,Red

@@ -1,0 +1,6 @@
+hiring_source,hires,avg_time_to_fill,median_time_to_fill,hires_with_outcome,early_exits,early_exit_rate,probation_fails,source_is_synthetic
+Referral,76,31.7,31.5,66,6,0.0909,3,True
+Recruitment Agency,31,40.3,36.0,27,3,0.1111,1,True
+Job Portal,45,45.0,43.0,34,3,0.0882,3,True
+Company Website,24,47.3,43.5,22,2,0.0909,1,True
+Campus,39,52.2,50.0,38,2,0.0526,1,True

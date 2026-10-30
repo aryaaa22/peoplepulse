@@ -1,0 +1,23 @@
+feature,coef,odds_ratio,direction
+overtime_Yes,1.4888,4.4319,raises risk
+job_role_Laboratory Technician,0.9318,2.5391,raises risk
+job_role_Sales Representative,0.5752,1.7775,raises risk
+years_in_current_role,-0.4877,0.6141,lowers risk
+department_Research & Development,-0.4583,0.6324,lowers risk
+years_since_last_promotion,0.4556,1.577,raises risk
+job_role_Research Director,-0.4272,0.6523,lowers risk
+job_role_Human Resources,0.385,1.4696,raises risk
+years_with_current_manager,-0.3738,0.6881,lowers risk
+job_role_Manager,-0.3701,0.6907,lowers risk
+department_Sales,0.3652,1.4408,raises risk
+job_satisfaction,-0.3486,0.7057,lowers risk
+age,-0.2854,0.7517,lowers risk
+gender_Male,0.2247,1.2519,raises risk
+years_at_company,0.2214,1.2478,raises risk
+job_role_Research Scientist,0.2117,1.2358,raises risk
+job_level,-0.1464,0.8638,lowers risk
+job_role_Manufacturing Director,-0.0789,0.9241,lowers risk
+job_role_Sales Executive,0.071,1.0736,raises risk
+monthly_income,-0.0705,0.932,lowers risk
+total_working_years,-0.0292,0.9712,lowers risk
+performance_rating,0.0084,1.0084,raises risk

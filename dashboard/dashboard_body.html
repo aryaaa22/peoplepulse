@@ -1,0 +1,486 @@
+<div id="root"></div>
+<script type="text/jsx">
+const E = data.employees;
+const pct = (x, d = 1) => (x * 100).toFixed(d) + "%";
+const num = (x) => Math.round(x).toLocaleString();
+const DEPTS = [{ value: "All", label: "All departments" }, { value: "R&D", label: "Research & Development" }, { value: "Sales", label: "Sales" }, { value: "HR", label: "Human Resources" }];
+const DEPT_FULL = { "R&D": "Research & Development", Sales: "Sales", HR: "Human Resources", All: "All" };
+const DIMS = {
+  role: { label: "Job role", key: (e) => e.role },
+  tenure: { label: "Tenure", key: (e) => e.tenure, order: ["0–1 Years", "2–3 Years", "4–5 Years", "6–10 Years", "10+ Years"] },
+  grade: { label: "Grade", key: (e) => e.grade, order: ["G1", "G2", "G3", "G4", "G5"] },
+  ot: { label: "Overtime", key: (e) => (e.ot ? "Overtime" : "No overtime") },
+  mgr: { label: "Manager", key: (e) => (e.newmgr ? "New manager (<1 yr)" : "Manager 1+ yrs") },
+  sat: { label: "Satisfaction", key: (e) => "Satisfaction " + e.sat, order: ["Satisfaction 1", "Satisfaction 2", "Satisfaction 3", "Satisfaction 4"] },
+  age: { label: "Age", key: (e) => e.age, order: ["<25", "25–34", "35–44", "45+"] },
+};
+const annualised = (exits, n) => exits / ((n + (n - exits)) / 2);
+const TIER_BADGE = { High: "destructive", Medium: "warning", Low: "default" };
+const RAG_BADGE = { Red: "destructive", Amber: "warning", Green: "success" };
+
+
+const rate = (rows) => (rows.length ? rows.reduce((t, e) => t + e.exit, 0) / rows.length : 0);
+const K = data.kpi;
+const SECTION = ({ title, children, note }) => (
+  <div className="flex flex-col gap-2">
+    <Text size={15} weight="semibold">{title}</Text>
+    {note ? <Text size={13} className="text-secondary">{note}</Text> : null}
+    {children}
+  </div>
+);
+const Basis = ({ b }) => <Badge variant={b === "Real" ? "success" : b === "Synthetic" ? "warning" : b === "Not in source" ? "destructive" : "blue"}>{b}</Badge>;
+const COVERAGE = [
+  ["Phase 1", "Integrate employee master, attendance, performance and hiring data", "Data foundation", "Mixed"],
+  ["Phase 1", "Dimensions for function, grade and tenure", "Data foundation", "Real"],
+  ["Phase 1", "Location dimension", "Data foundation (placeholder)", "Not in source"],
+  ["Phase 1", "Base KPIs: headcount, attrition, absenteeism, hiring lead time", "KPI cards at the top", "Mixed"],
+  ["Phase 2", "High-attrition cohorts by function and tenure", "Attrition & risk", "Real"],
+  ["Phase 2", "Correlate leave trends, manager changes and exits", "Attrition & risk", "Mixed"],
+  ["Phase 2", "Attrition early-warning indicators", "Attrition & risk", "Real"],
+  ["Phase 3", "Productivity metrics by role family", "Productivity & hiring", "Synthetic"],
+  ["Phase 3", "Hiring source quality and time-to-fill", "Productivity & hiring", "Synthetic"],
+  ["Phase 3", "Probation and early-exit outcomes", "Productivity & hiring", "Mixed"],
+  ["Phase 4", "Quarterly headcount forecast", "Workforce planning", "Real"],
+  ["Phase 4", "Critical-role risk dashboard", "Workforce planning", "Real"],
+  ["Phase 4", "Department talent health scorecard", "Workforce planning", "Mixed"],
+  ["Deliverable", "HR planning recommendation deck", "Recommendations + PPTX", "Real"],
+];
+function groupRates(rows, dim) {
+  const m = {};
+  rows.forEach((e) => { const k = DIMS[dim].key(e); m[k] = m[k] || { name: k, n: 0, exits: 0 }; m[k].n++; m[k].exits += e.exit; });
+  let out = Object.values(m).map((g) => ({ ...g, rate: +(100 * g.exits / g.n).toFixed(1) }));
+  const order = DIMS[dim].order;
+  return order ? out.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name)) : out.sort((a, b) => b.rate - a.rate);
+}
+
+function KpiCards({ rows, dept }) {
+  const n = rows.length, exits = rows.reduce((t, e) => t + e.exit, 0);
+  const active = rows.filter((e) => !e.exit);
+  const absRate = rows.reduce((t, e) => t + e.abs, 0) / n;
+  const tt = data.ttfGrade.filter((r) => dept === "All" || r.department === DEPT_FULL[dept]);
+  const hires = tt.reduce((t, r) => t + r.hires, 0);
+  const ttf = tt.reduce((t, r) => t + r.hires * r.avg_time_to_fill, 0) / hires;
+  return (
+    <StatsRow columns={4}>
+      <StatCard label="Headcount (active)"><StatCardValue>{num(active.length)}</StatCardValue><StatCardCaption>of {num(n)} records</StatCardCaption></StatCard>
+      <StatCard label="Attrition (annualised)"><StatCardValue>{pct(annualised(exits, n))}</StatCardValue><StatCardCaption>{exits} exits</StatCardCaption></StatCard>
+      <StatCard label="Absenteeism*"><StatCardValue>{pct(absRate)}</StatCardValue><StatCardCaption>absent / scheduled days, 12 mo</StatCardCaption></StatCard>
+      <StatCard label="Hiring lead time*"><StatCardValue>{ttf.toFixed(0)} days</StatCardValue><StatCardCaption>avg time to fill, {hires} hires</StatCardCaption></StatCard>
+    </StatsRow>
+  );
+}
+
+function OverviewTab({ rows, dept }) {
+  const active = rows.filter((e) => !e.exit);
+  const ot = rows.filter((e) => e.ot), noOt = rows.filter((e) => !e.ot);
+  const early = rows.filter((e) => e.tenure === "0–1 Years");
+  const high = active.filter((e) => e.tier === "High").length;
+  const hp = data.metrics.tier_performance.find((t) => t.tier === "High");
+  const roles = groupRates(rows, "role").filter((g) => g.n >= 30);
+  const top = roles[0];
+  const hc = data.headcountDept.filter((h) => dept === "All" || h.dept === dept);
+  const months = [...new Set(hc.map((h) => h.month))];
+  const hcChart = months.map((m) => { const g = hc.filter((h) => h.month === m); return { m, headcount: g.reduce((t, h) => t + h.headcount, 0), hires: g.reduce((t, h) => t + h.hires, 0), exits: g.reduce((t, h) => t + h.exits, 0) }; });
+  const findings = [
+    `Overtime: ${pct(rate(ot), 0)} of employees working overtime left vs ${pct(rate(noOt), 0)} without – the strongest driver in the risk model (odds ×${data.drivers[0].odds_ratio.toFixed(1)}).`,
+    `Exits are front-loaded: ${pct(rate(early), 0)} exit at 0–1 years' tenure.`,
+    `Highest-attrition role${dept === "All" ? "" : " in " + DEPT_FULL[dept]}: ${top.name} (${top.rate}% of ${top.n}).`,
+    `${high} active employees are in the High risk tier; company-wide that tier holds ${pct(hp.share_of_all_exits, 0)} of all exits.`,
+  ];
+  return (
+    <div className="flex flex-col gap-6">
+      <SECTION title="Key findings">
+        <ul className="list-disc pl-5 text-sm text-primary flex flex-col gap-1">{findings.map((f) => <li key={f}>{f}</li>)}</ul>
+      </SECTION>
+      <SECTION title="Project brief coverage" note="Every objective in the PeoplePulse brief and where it is answered. Data basis shows whether the result rests on the real IBM records or on the labelled synthetic layer.">
+        <Table wrapText>
+          <TableHeader><TableRow><TableHead>Phase</TableHead><TableHead>Objective</TableHead><TableHead>Where</TableHead><TableHead>Data basis</TableHead></TableRow></TableHeader>
+          <TableBody>{COVERAGE.map(([p, o, w, b]) => <TableRow key={o}><TableCell>{p}</TableCell><TableCell>{o}</TableCell><TableCell className="text-secondary">{w}</TableCell><TableCell><Basis b={b} /></TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title="Monthly headcount, hires and exits*" note="Synthetic timeline: the IBM data has no dates, so hire and exit months are generated (exits placed in the 12 months before the snapshot).">
+        <ChartContainer config={{ headcount: { label: "Opening headcount", color: chartColors[0] } }} style={{ height: 200, width: "100%" }}>
+          <LineChart data={hcChart}><ChartGrid /><ChartXAxis dataKey="m" /><ChartYAxis title="Headcount" domain={["auto", "auto"]} /><ChartTooltip content={<ChartTooltipContent />} /><ChartLine dataKey="headcount" dot={false} /></LineChart>
+        </ChartContainer>
+        <ChartContainer config={{ hires: { label: "Hires", color: chartColors[1] }, exits: { label: "Exits", color: "rgb(var(--text-red))" } }} style={{ height: 180, width: "100%" }}>
+          <BarChart data={hcChart}><ChartGrid /><ChartXAxis dataKey="m" /><ChartYAxis title="Employees" /><ChartTooltip content={<ChartTooltipContent />} /><ChartLegend content={<ChartLegendContent />} /><ChartBar dataKey="hires" /><ChartBar dataKey="exits" /></BarChart>
+        </ChartContainer>
+      </SECTION>
+    </div>
+  );
+}
+
+function FoundationTab({ rows }) {
+  const [dim, setDim] = useState("dept");
+  const DIMF = { dept: ["Function", (e) => DEPT_FULL[e.dept]], grade: ["Grade", (e) => e.grade], tenure: ["Tenure", (e) => e.tenure], loc: ["Location", () => "Not provided"] };
+  const m = {};
+  rows.forEach((e) => { const k = DIMF[dim][1](e); m[k] = m[k] || { k, n: 0, active: 0, exits: 0 }; m[k].n++; m[k].exits += e.exit; m[k].active += 1 - e.exit; });
+  const dimRows = Object.values(m).sort((a, b) => (a.k > b.k ? 1 : -1));
+  const nodes = [
+    { id: "src", title: "PeoplePulse_IBM_Integrated.xlsx", sub: "Employee_Master, 1,470 rows", group: "src" },
+    { id: "syn", title: "Synthetic generator", sub: "seed 42, is_synthetic", group: "src" },
+    { id: "dim_department", title: "dim_department", sub: "function", group: "dim" },
+    { id: "dim_job_role", title: "dim_job_role", sub: "role family, critical", group: "dim" },
+    { id: "dim_grade", title: "dim_grade", group: "dim" },
+    { id: "dim_tenure_band", title: "dim_tenure_band", group: "dim" },
+    { id: "dim_location", title: "dim_location", sub: "Not provided", group: "dim" },
+    { id: "fct_employee_snapshot", title: "fct_employee_snapshot", sub: "real", group: "fct" },
+    { id: "fct_syn", title: "fct_attendance / productivity / requisition / headcount", sub: "synthetic", group: "fct" },
+    { id: "vw", title: "KPI views (vw_*)", sub: "dashboard, workbook, deck", group: "out" },
+  ];
+  const edges = [
+    { from: "src", to: "fct_employee_snapshot" }, { from: "syn", to: "fct_syn" }, { from: "src", to: "syn", label: "real attributes", dim: true },
+    ...["dim_department", "dim_job_role", "dim_grade", "dim_tenure_band", "dim_location"].map((d) => ({ from: d, to: "fct_employee_snapshot", dim: true })),
+    { from: "fct_employee_snapshot", to: "vw" }, { from: "fct_syn", to: "vw" },
+  ];
+  return (
+    <div className="flex flex-col gap-6">
+      <SECTION title="Star-schema data model (DuckDB)" note="Real IBM records feed the employee snapshot fact; attendance, productivity, requisitions and the monthly headcount timeline come from the labelled synthetic layer keyed to the same employee IDs.">
+        <Diagram nodes={nodes} edges={edges} direction="TB" groups={[{ id: "src", label: "Sources" }, { id: "dim", label: "Dimensions" }, { id: "fct", label: "Facts" }, { id: "out", label: "Outputs" }]} />
+        <Table viewportClassName="max-h-80" scrollOrientation="both" stickyHeader>
+          <TableHeader><TableRow><TableHead>Table / view</TableHead><TableHead>Type</TableHead><TableHead className="text-right">Rows</TableHead><TableHead className="text-right">Columns</TableHead><TableHead>Data basis</TableHead></TableRow></TableHeader>
+          <TableBody>{data.tables.map((t) => <TableRow key={t.name}><TableCell className="font-mono text-xs">{t.name}</TableCell><TableCell>{t.type === "VIEW" ? "View" : t.name.startsWith("dim") ? "Dimension" : "Fact"}</TableCell><TableCell className="text-right">{num(t.rows)}</TableCell><TableCell className="text-right">{t.cols}</TableCell><TableCell><Basis b={t.name === "dim_location" ? "Not in source" : t.synthetic ? "Synthetic" : "Real"} /></TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title="Dimensions" note="Headcount and exits by each planning dimension for the selected department. Location has no values in the source, so it is kept as a placeholder dimension.">
+        <SegmentedControl value={dim} onValueChange={setDim} size="small">{Object.entries(DIMF).map(([k, v]) => <SegmentedControlItem key={k} value={k}>{v[0]}</SegmentedControlItem>)}</SegmentedControl>
+        <Table>
+          <TableHeader><TableRow><TableHead>{DIMF[dim][0]}</TableHead><TableHead className="text-right">Records</TableHead><TableHead className="text-right">Active</TableHead><TableHead className="text-right">Exits</TableHead><TableHead className="text-right">Exit %</TableHead><TableHead className="text-right">Share of records</TableHead></TableRow></TableHeader>
+          <TableBody>{dimRows.map((r) => <TableRow key={r.k}><TableCell>{r.k}</TableCell><TableCell className="text-right">{num(r.n)}</TableCell><TableCell className="text-right">{num(r.active)}</TableCell><TableCell className="text-right">{r.exits}</TableCell><TableCell className="text-right">{pct(r.exits / r.n)}</TableCell><TableCell className="text-right">{pct(r.n / rows.length)}</TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title="Data quality log" note="Checks run on the uploaded workbook during ingestion.">
+        <DataQualityTab />
+      </SECTION>
+    </div>
+  );
+}
+
+function LeaveManagerExit({ rows }) {
+  const mgrBands = [["0 yrs (new)", 0, 0], ["1 yr", 1, 1], ["2–3 yrs", 2, 3], ["4–6 yrs", 4, 6], ["7+ yrs", 7, 99]];
+  const mgr = mgrBands.map(([name, a, b]) => { const g = rows.filter((e) => e.ywm >= a && e.ywm <= b); return { name, rate: +(100 * rate(g)).toFixed(1), n: g.length }; });
+  const sorted = [...rows].sort((a, b) => a.abs - b.abs);
+  const q = [0, 1, 2, 3].map((i) => { const g = sorted.slice(Math.floor((i * sorted.length) / 4), Math.floor(((i + 1) * sorted.length) / 4)); return { name: ["Q1 (low)", "Q2", "Q3", "Q4 (high)"][i], rate: +(100 * rate(g)).toFixed(1), absence: +(100 * g[g.length - 1].abs).toFixed(1) }; });
+  const le = data.leaveExit;
+  return (
+    <SECTION title="Leave trends, manager changes and exits" note="Manager tenure is real IBM data (years with current manager = 0 stands in for a recent manager change). Absence is synthetic: it is generated from overtime, satisfaction and tenure with no exit signal, so any link to exits is indirect.">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-1">
+          <Text size={13} weight="medium">Exit % by years with current manager</Text>
+          <ChartContainer config={{ rate: { label: "Exit %", color: chartColors[0] } }} style={{ height: 220, width: "100%" }}>
+            <BarChart data={mgr}><ChartGrid /><ChartXAxis dataKey="name" /><ChartYAxis title="Exit %" /><ChartTooltip content={<ChartTooltipContent />} /><ChartBar dataKey="rate" /></BarChart>
+          </ChartContainer>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Text size={13} weight="medium">Exit % by absence quartile*</Text>
+          <ChartContainer config={{ rate: { label: "Exit %", color: chartColors[4] } }} style={{ height: 220, width: "100%" }}>
+            <BarChart data={q}><ChartGrid /><ChartXAxis dataKey="name" /><ChartYAxis title="Exit %" /><ChartTooltip content={<ChartTooltipContent />} /><ChartBar dataKey="rate" /></BarChart>
+          </ChartContainer>
+        </div>
+      </div>
+      <Text size={12} className="text-tertiary">Company-wide synthetic absence: {le.map((l) => `${l.grp} ${pct(l.absenteeism_rate)}`).join("; ")}.</Text>
+    </SECTION>
+  );
+}
+
+function AttritionTab({ rows, dept }) {
+  const [dim, setDim] = useState("role");
+  const overall = 100 * rows.reduce((s, e) => s + e.exit, 0) / rows.length;
+  const g = groupRates(rows, dim);
+  const cohortDepts = dept === "All" ? ["R&D", "Sales", "HR"] : [dept];
+  const tenures = DIMS.tenure.order;
+  const heat = cohortDepts.map((d) => ({
+    label: d,
+    cells: tenures.map((t) => {
+      const c = E.filter((e) => e.dept === d && e.tenure === t);
+      return { label: t.replace(" Years", "y"), value: c.length ? +(100 * c.reduce((s, e) => s + e.exit, 0) / c.length).toFixed(0) : 0 };
+    }),
+  }));
+  return (
+    <div className="flex flex-col gap-4">
+      <Text size={13} className="text-secondary">Exit proportion by segment; red bars are more than 25% above the selection average (dashed line, {overall.toFixed(1)}%). Real IBM data.</Text>
+      <SegmentedControl value={dim} onValueChange={setDim} size="small">
+        {Object.entries(DIMS).map(([k, v]) => <SegmentedControlItem key={k} value={k}>{v.label}</SegmentedControlItem>)}
+      </SegmentedControl>
+      <ChartContainer config={{ rate: { label: "Exit %", color: chartColors[0] } }} style={{ height: Math.max(160, g.length * 34 + 40), width: "100%" }}>
+        <BarChart data={g} layout="vertical" margin={{ left: 8, right: 24 }}>
+          <ChartGrid horizontal={false} vertical />
+          <ChartXAxis type="number" unit="%" />
+          <ChartYAxis type="category" dataKey="name" width={170} tick={{ fontSize: 12 }} />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Recharts.ReferenceLine x={overall} stroke={chartColors[3]} strokeDasharray="4 4" />
+          <ChartBar dataKey="rate" radius={[0, 4, 4, 0]}>
+            {g.map((r) => <Cell key={r.name} fill={r.rate > overall * 1.25 ? "rgb(var(--text-red))" : chartColors[0]} />)}
+          </ChartBar>
+        </BarChart>
+      </ChartContainer>
+      <Text size={14} weight="semibold">Exit % by department and tenure</Text>
+      <Heatmap data={heat} maxValue={60} />
+      <Text size={12} className="text-tertiary">HR 0–1 year cell is n=5; treat as directional.</Text>
+    </div>
+  );
+}
+
+function EarlyWarningTab({ rows }) {
+  const [sort, setSort] = useState("desc");
+  const watch = rows.filter((e) => !e.exit && e.tier === "High").sort((a, b) => (sort === "desc" ? b.risk - a.risk : a.risk - b.risk));
+  const m = data.metrics, lr = m.logistic_regression;
+  const drv = data.drivers.slice(0, 10).map((d) => ({ label: d.feature.replace(/_/g, " "), value: +Math.abs(d.coef).toFixed(2), valueLabel: "x" + d.odds_ratio.toFixed(2) + (d.coef > 0 ? " risk" : " (protective)"), color: d.coef > 0 ? "rgb(var(--text-red))" : "rgb(var(--text-green))" }));
+  return (
+    <div className="flex flex-col gap-4">
+      <Text size={13} className="text-secondary">Logistic-regression risk model, 5-fold cross-validated: ROC AUC {lr.roc_auc}, PR AUC {lr.pr_auc} (baseline {pct(m.overall_exit_proportion)}). The High tier (top 10% of active staff) contains {pct(m.tier_performance.find((t) => t.tier === "High").share_of_all_exits, 0)} of all exits.</Text>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Text size={14} weight="semibold">Exit % by number of early-warning flags</Text>
+          <ChartContainer config={{ rate: { label: "Exit %", color: chartColors[1] } }} style={{ height: 220, width: "100%" }}>
+            <BarChart data={["0", "1", "2", "3", "4+"].map((b, i) => { const g = rows.filter((e) => (i < 4 ? e.flags === i : e.flags >= 4)); return { name: b + " flags", rate: +(100 * rate(g)).toFixed(1), n: g.length }; })}>
+              <ChartGrid /><ChartXAxis dataKey="name" /><ChartYAxis title="Exit %" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartBar dataKey="rate" />
+            </BarChart>
+          </ChartContainer>
+          <Text size={12} className="text-tertiary">Flags: overtime, satisfaction = 1, grade G1, tenure ≤ 1 yr, new manager, bottom-quartile pay, ≤ 2 yrs total experience.</Text>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Text size={14} weight="semibold">Strongest model drivers (odds ratio)</Text>
+          <BarList data={drv} />
+        </div>
+      </div>
+      <Text size={14} weight="semibold">Watch list: {watch.length} high-risk active employees</Text>
+      <Table viewportClassName="max-h-80" scrollOrientation="both" stickyHeader>
+        <TableHeader><TableRow>
+          <TableHead>Employee</TableHead><TableHead>Department</TableHead><TableHead>Role</TableHead><TableHead>Grade</TableHead><TableHead>Tenure</TableHead>
+          <SortableTableHead sort={sort} onSort={() => setSort(sort === "desc" ? "asc" : "desc")} align="end">Risk</SortableTableHead>
+          <TableHead>Main drivers</TableHead>
+        </TableRow></TableHeader>
+        <TableBody>
+          {watch.map((e) => (
+            <TableRow key={e.id}>
+              <TableCell>{e.id}</TableCell><TableCell>{e.dept}</TableCell><TableCell>{e.role}</TableCell><TableCell>{e.grade}</TableCell><TableCell>{e.tenure}</TableCell>
+              <TableCell className="text-right">{pct(e.risk, 0)}</TableCell><TableCell className="text-secondary">{e.drivers.replace(/_/g, " ")}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function PlanningTab({ dept }) {
+  const scen = [...new Set(data.forecast.map((f) => f.scenario))];
+  const key = DEPT_FULL[dept];
+  const series = {};
+  const short = (s) => s.split(":")[0].split(" (")[0];
+  scen.forEach((s, i) => (series["s" + i] = { label: short(s), color: chartColors[i] }));
+  const fc = data.forecast.filter((f) => f.department === key);
+  const quarters = ["2026Q3", ...new Set(fc.map((f) => f.quarter))];
+  const chart = quarters.map((q) => {
+    const row = { q: q === "2026Q3" ? "2026Q3 actual" : q };
+    scen.forEach((s, i) => { const r = fc.find((f) => f.scenario === s && f.quarter === q); row["s" + i] = r ? r.headcount_p50 : fc.find((f) => f.scenario === s).start_headcount; });
+    return row;
+  });
+  const vals = chart.flatMap((r) => scen.map((_, i) => r["s" + i]));
+  const step = key === "All" ? 50 : key === "Human Resources" ? 5 : 25;
+  const lo = Math.floor(Math.min(...vals) * 0.98 / step) * step, hi = Math.ceil(Math.max(...vals) * 1.01 / step) * step;
+  const crit = data.critical;
+  return (
+    <div className="flex flex-col gap-4">
+      <Text size={14} weight="semibold">Quarterly headcount forecast – {key === "All" ? "company" : key}</Text>
+      <ChartContainer config={series} style={{ height: 280, width: "100%" }}>
+        <LineChart data={chart}>
+          <ChartGrid /><ChartXAxis dataKey="q" /><ChartYAxis domain={[lo, hi]} title="Active headcount (median)" />
+          <ChartTooltip content={<ChartTooltipContent />} /><ChartLegend content={<ChartLegendContent />} />
+          {scen.map((s, i) => <ChartLine key={s} dataKey={"s" + i} dot />)}
+        </LineChart>
+      </ChartContainer>
+      <Table>
+        <TableHeader><TableRow><TableHead>Scenario</TableHead><TableHead className="text-right">2027Q3 median</TableHead><TableHead className="text-right">P10–P90</TableHead><TableHead className="text-right">Exits over 4 quarters</TableHead></TableRow></TableHeader>
+        <TableBody>{scen.map((s) => { const g = fc.filter((f) => f.scenario === s); const last = g[g.length - 1]; return (
+          <TableRow key={s}><TableCell>{s}</TableCell><TableCell className="text-right">{num(last.headcount_p50)}</TableCell><TableCell className="text-right">{num(last.headcount_p10)}–{num(last.headcount_p90)}</TableCell><TableCell className="text-right">{num(g.reduce((t, r) => t + r.expected_exits, 0))}</TableCell></TableRow>); })}</TableBody>
+      </Table>
+      <Text size={14} weight="semibold">Talent health scorecard</Text>
+      <Table>
+        <TableHeader><TableRow><TableHead>Department</TableHead><TableHead className="text-right">Score</TableHead><TableHead className="text-right">Attrition</TableHead><TableHead className="text-right">High-risk</TableHead><TableHead className="text-right">Low satisfaction</TableHead><TableHead className="text-right">Overtime</TableHead><TableHead className="text-right">Time to fill*</TableHead></TableRow></TableHeader>
+        <TableBody>{data.scorecard.map((s) => (
+          <TableRow key={s.department}><TableCell>{s.department}</TableCell><TableCell className="text-right"><Badge variant={RAG_BADGE[s.rag]}>{s.talent_health_score.toFixed(0)} {s.rag}</Badge></TableCell>
+            <TableCell className="text-right">{pct(s.attrition_rate)}</TableCell><TableCell className="text-right">{pct(s.high_risk_share)}</TableCell><TableCell className="text-right">{pct(s.low_satisfaction_share)}</TableCell><TableCell className="text-right">{pct(s.overtime_share)}</TableCell><TableCell className="text-right">{s.avg_time_to_fill_syn.toFixed(0)} d</TableCell></TableRow>))}</TableBody>
+      </Table>
+      <Text size={14} weight="semibold">Critical-role risk</Text>
+      <Table>
+        <TableHeader><TableRow><TableHead>Role</TableHead><TableHead>Critical</TableHead><TableHead className="text-right">Active</TableHead><TableHead className="text-right">Attrition</TableHead><TableHead className="text-right">High-risk</TableHead><TableHead className="text-right">Expected exits 12 mo</TableHead></TableRow></TableHeader>
+        <TableBody>{crit.map((c) => (
+          <TableRow key={c.job_role}><TableCell>{c.job_role}</TableCell><TableCell>{c.is_critical ? <Badge variant="orange">Critical</Badge> : ""}</TableCell><TableCell className="text-right">{num(c.active)}</TableCell><TableCell className="text-right">{pct(c.attrition_rate)}</TableCell><TableCell className="text-right">{c.high_risk_active}</TableCell><TableCell className="text-right">{c.expected_exits_12m.toFixed(0)}</TableCell></TableRow>))}</TableBody>
+      </Table>
+      <Text size={12} className="text-tertiary">Scorecard and critical-role tables are company-wide. * synthetic input.</Text>
+    </div>
+  );
+}
+
+function ProductivityHiringTab({ dept }) {
+  const abs = data.absenteeism.filter((a) => dept === "All" || a.dept === dept);
+  const months = [...new Set(abs.map((a) => a.month))];
+  const depts = dept === "All" ? ["R&D", "Sales", "HR"] : [dept];
+  const absChart = months.map((m) => { const r = { m }; depts.forEach((d) => { const x = abs.find((a) => a.month === m && a.dept === d); r[d] = x ? x.rate : null; }); return r; });
+  const absCfg = Object.fromEntries(depts.map((d, i) => [d, { label: d, color: chartColors[i] }]));
+  const fams = [...new Set(data.productivity.map((p) => p.fam))];
+  const qs = [...new Set(data.productivity.map((p) => p.q))];
+  const prod = qs.map((q) => { const r = { q }; fams.forEach((f) => { const x = data.productivity.find((p) => p.q === q && p.fam === f); r[f] = x ? x.score : null; }); return r; });
+  const prodCfg = Object.fromEntries(fams.map((f, i) => [f, { label: f, color: chartColors[i] }]));
+  const lastQ = qs[qs.length - 1], firstQ = qs[0];
+  const roles = [...new Set(data.prodRole.map((r) => r.job_role))].map((j) => {
+    const a = data.prodRole.find((r) => r.job_role === j && r.review_period === firstQ), b = data.prodRole.find((r) => r.job_role === j && r.review_period === lastQ);
+    return { j, fam: b.role_family, n: b.employees, score: b.avg_productivity, chg: b.avg_productivity - a.avg_productivity };
+  }).sort((a, b) => b.score - a.score);
+  const grades = ["G1", "G2", "G3", "G4", "G5"];
+  const tt = data.ttfGrade.filter((r) => dept === "All" || r.department === DEPT_FULL[dept]);
+  const ttf = grades.map((g) => { const x = tt.filter((r) => r.grade === g); const h = x.reduce((t, r) => t + r.hires, 0); return { grade: g, days: h ? +(x.reduce((t, r) => t + r.hires * r.avg_time_to_fill, 0) / h).toFixed(1) : null, hires: h }; }).filter((r) => r.hires);
+  const totalHires = data.probation.reduce((t, r) => t + r.hires, 0);
+  return (
+    <div className="flex flex-col gap-6">
+      <BannerCard variant="warning" title="Mostly synthetic data">The IBM dataset has no attendance, requisition or productivity history. Panels marked * use a generated layer (fixed seed) to demonstrate the method; do not read them as findings. First-year exits are real IBM attrition.</BannerCard>
+      <SECTION title="Productivity by role family*" note="Quarterly productivity index (0–100), driven by real performance rating, level, satisfaction, overtime and tenure.">
+        <ChartContainer config={prodCfg} style={{ height: 220, width: "100%" }}>
+          <BarChart data={prod}><ChartGrid /><ChartXAxis dataKey="q" /><ChartYAxis domain={[0, 100]} title="Score" /><ChartTooltip content={<ChartTooltipContent />} /><ChartLegend content={<ChartLegendContent />} />
+            {fams.map((f) => <ChartBar key={f} dataKey={f} />)}</BarChart>
+        </ChartContainer>
+        <Table>
+          <TableHeader><TableRow><TableHead>Job role</TableHead><TableHead>Role family</TableHead><TableHead className="text-right">Employees {lastQ}</TableHead><TableHead className="text-right">Score {lastQ}</TableHead><TableHead className="text-right">Change since {firstQ}</TableHead></TableRow></TableHeader>
+          <TableBody>{roles.map((r) => <TableRow key={r.j}><TableCell>{r.j}</TableCell><TableCell className="text-secondary">{r.fam}</TableCell><TableCell className="text-right">{r.n}</TableCell><TableCell className="text-right">{r.score.toFixed(1)}</TableCell><TableCell className={"text-right " + (r.chg < 0 ? "text-red" : "text-green")}>{(r.chg > 0 ? "+" : "") + r.chg.toFixed(1)}</TableCell></TableRow>)}</TableBody>
+        </Table>
+        <Table>
+          <TableHeader><TableRow><TableHead>Performance rating</TableHead><TableHead>Overtime</TableHead><TableHead className="text-right">Employees</TableHead><TableHead className="text-right">Avg productivity</TableHead></TableRow></TableHeader>
+          <TableBody>{data.prodByRating.map((r) => <TableRow key={r.performance_rating + r.overtime}><TableCell>{r.performance_rating}</TableCell><TableCell>{r.overtime}</TableCell><TableCell className="text-right">{r.employees}</TableCell><TableCell className="text-right">{r.avg_productivity.toFixed(1)}</TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title="Hiring source quality*" note="Early exit = hire who left within a year, among hires old enough to observe. Company-wide.">
+        <Table>
+          <TableHeader><TableRow><TableHead>Source</TableHead><TableHead className="text-right">Hires</TableHead><TableHead className="text-right">Avg time to fill</TableHead><TableHead className="text-right">Median</TableHead><TableHead className="text-right">Early exits / observable</TableHead><TableHead className="text-right">Probation fails</TableHead></TableRow></TableHeader>
+          <TableBody>{data.hiring.map((h) => (
+            <TableRow key={h.hiring_source}><TableCell>{h.hiring_source}</TableCell><TableCell className="text-right">{h.hires}</TableCell><TableCell className="text-right">{h.avg_time_to_fill.toFixed(0)} d</TableCell><TableCell className="text-right">{h.median_time_to_fill.toFixed(0)} d</TableCell><TableCell className="text-right">{h.early_exits} / {h.hires_with_outcome} ({pct(h.early_exit_rate, 0)})</TableCell><TableCell className="text-right">{h.probation_fails}</TableCell></TableRow>))}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title={`Time to fill by grade*${dept === "All" ? "" : " – " + DEPT_FULL[dept]}`}>
+        <ChartContainer config={{ days: { label: "Avg days to fill", color: chartColors[2] } }} style={{ height: 200, width: "100%" }}>
+          <BarChart data={ttf}><ChartGrid /><ChartXAxis dataKey="grade" /><ChartYAxis title="Days" /><ChartTooltip content={<ChartTooltipContent />} /><ChartBar dataKey="days" /></BarChart>
+        </ChartContainer>
+      </SECTION>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SECTION title="Probation and early-exit outcomes*" note={`All ${totalHires} synthetic requisitions filled.`}>
+          <Table>
+            <TableHeader><TableRow><TableHead>Probation</TableHead><TableHead>Exit within 1 yr</TableHead><TableHead className="text-right">Hires</TableHead></TableRow></TableHeader>
+            <TableBody>{data.probation.map((p) => <TableRow key={p.probation_result + p.early_exit_within_1_year}><TableCell>{p.probation_result}</TableCell><TableCell>{p.early_exit_within_1_year}</TableCell><TableCell className="text-right">{p.hires}</TableCell></TableRow>)}</TableBody>
+          </Table>
+        </SECTION>
+        <SECTION title="First-year exits (real IBM)" note="Employees with Years_at_Company = 0.">
+          <Table>
+            <TableHeader><TableRow><TableHead>Department</TableHead><TableHead className="text-right">First-year staff</TableHead><TableHead className="text-right">Exited</TableHead><TableHead className="text-right">Exit %</TableHead></TableRow></TableHeader>
+            <TableBody>{data.firstYear.map((f) => <TableRow key={f.department}><TableCell>{f.department}</TableCell><TableCell className="text-right">{f.first_year_records}</TableCell><TableCell className="text-right">{f.first_year_exits}</TableCell><TableCell className="text-right">{pct(f.first_year_exit_proportion, 0)}</TableCell></TableRow>)}</TableBody>
+          </Table>
+        </SECTION>
+      </div>
+      <SECTION title="Monthly absenteeism (%)*">
+        <ChartContainer config={absCfg} style={{ height: 220, width: "100%" }}>
+          <LineChart data={absChart}><ChartGrid /><ChartXAxis dataKey="m" /><ChartYAxis domain={[0, 6]} title="Absent days / scheduled %" /><ChartTooltip content={<ChartTooltipContent />} /><ChartLegend content={<ChartLegendContent />} />
+            {depts.map((d) => <ChartLine key={d} dataKey={d} dot={false} />)}</LineChart>
+        </ChartContainer>
+      </SECTION>
+    </div>
+  );
+}
+
+function RecommendationsTab() {
+  const ot = E.filter((e) => e.ot), noOt = E.filter((e) => !e.ot);
+  const act = E.filter((e) => !e.exit), high = act.filter((e) => e.tier === "High");
+  const t01 = E.filter((e) => e.tenure === "0–1 Years"), nm = E.filter((e) => e.newmgr), g1 = E.filter((e) => e.grade === "G1");
+  const fc = data.forecast.filter((f) => f.department === "All");
+  const ex = (s) => fc.filter((f) => f.scenario.startsWith(s)).reduce((t, f) => t + f.expected_exits, 0);
+  const se = data.critical.find((c) => c.job_role === "Sales Executive");
+  const recs = [
+    ["Cap and rebalance overtime", `${pct(rate(ot), 0)} vs ${pct(rate(noOt), 0)} exit; ${pct(high.filter((e) => e.ot).length / high.length, 0)} of High-tier staff work overtime`, "Overtime caps or comp-time for Sales Reps, Lab Techs and Research Scientists; monthly overtime review", "Operations + HRBP"],
+    ["First-two-years programme", `${pct(rate(t01), 0)} exit at 0–1 years' tenure`, "Structured onboarding, 30/60/90-day check-ins, buddy system, 12-month career conversation", "HR + line managers"],
+    ["Protect manager transitions", `${pct(rate(nm), 0)} exit when the manager is new (< 1 yr)`, "Handover plan and skip-level 1:1 within 30 days of any manager change", "HRBP"],
+    ["Entry-grade pay and progression", `G1 exit ${pct(rate(g1), 0)}`, "Benchmark G1 pay; publish G1 to G2 promotion criteria", "Total Rewards"],
+    ["Targeted retention for the High tier", `${high.length} high-risk active staff; ~${num(ex("Base") - ex("Retention"))} exits avoidable per year`, "Monthly risk refresh, stay interviews, manager action plans", "HR Analytics + HRBP"],
+    ["Sales Executive bench", `~${se.expected_exits_12m.toFixed(0)} expected exits in 12 months; ${se.high_risk_active} high-risk`, "Succession pool from top Sales Reps; hire ahead of expected exits", "Sales leadership + TA"],
+  ];
+  const deliverables = [
+    ["Workforce analytics data model", "DuckDB star schema (sql/), PeoplePulse_Analytics.xlsx (Power BI-ready)"],
+    ["Attrition and productivity dashboards", "This website (PeoplePulse_Dashboard.html)"],
+    ["HR planning recommendation deck", "PeoplePulse_HR_Recommendations.pptx (13 slides)"],
+    ["Code and documentation", "src/*.py, run_all.sh, README.md with KPI dictionary"],
+  ];
+  return (
+    <div className="flex flex-col gap-6">
+      <SECTION title="Recommendations for HR and leadership" note="Evidence is computed from the real IBM records on this page.">
+        <Table wrapText>
+          <TableHeader><TableRow><TableHead>Action</TableHead><TableHead>Evidence</TableHead><TableHead>What to do</TableHead><TableHead>Owner</TableHead></TableRow></TableHeader>
+          <TableBody>{recs.map(([a, e, w, o], i) => <TableRow key={a}><TableCell className="font-medium">{i + 1}. {a}</TableCell><TableCell>{e}</TableCell><TableCell className="text-secondary">{w}</TableCell><TableCell>{o}</TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+      <SECTION title="Next steps">
+        <ul className="list-disc pl-5 text-sm text-primary flex flex-col gap-1">
+          <li>Connect HRIS hire and exit dates, location and monthly snapshots to measure true period attrition.</li>
+          <li>Replace the synthetic layer with real time-and-attendance and ATS (requisition) data.</li>
+          <li>Retrain the risk model quarterly and validate it on the next period's actual exits.</li>
+          <li>Use risk scores for planning in aggregate, not individual decisions; audit tiers by gender and age first.</li>
+        </ul>
+      </SECTION>
+      <SECTION title="Deliverables">
+        <Table>
+          <TableHeader><TableRow><TableHead>Brief deliverable</TableHead><TableHead>File</TableHead></TableRow></TableHeader>
+          <TableBody>{deliverables.map(([d, f]) => <TableRow key={d}><TableCell>{d}</TableCell><TableCell className="text-secondary">{f}</TableCell></TableRow>)}</TableBody>
+        </Table>
+      </SECTION>
+    </div>
+  );
+}
+
+function DataQualityTab() {
+  const sev = { high: "destructive", medium: "warning", low: "default", info: "blue", ok: "success" };
+  return (
+    <Table wrapText>
+      <TableHeader><TableRow><TableHead>Severity</TableHead><TableHead>Table</TableHead><TableHead>Finding</TableHead></TableRow></TableHeader>
+      <TableBody>{data.dq.map((d, i) => (
+        <TableRow key={i}><TableCell><Badge variant={sev[d.severity]}>{d.severity}</Badge></TableCell><TableCell>{d.table}</TableCell><TableCell>{d.issue}</TableCell></TableRow>))}</TableBody>
+    </Table>
+  );
+}
+
+function Report() {
+  const [dept, setDept] = useState("All");
+  const rows = useMemo(() => E.filter((e) => dept === "All" || e.dept === dept), [dept]);
+  return (
+    <PageLayout title="PeoplePulse – workforce analytics command center" subtitle={`IBM HR Analytics snapshot (1,470 employees) as of ${data.snapshot}. * = synthetic data.`} themeToggle>
+      <div className="flex items-center gap-3">
+        <Text size={12} className="text-secondary">Department</Text>
+        <SimpleSelect options={DEPTS} value={dept} onValueChange={setDept} />
+      </div>
+      <KpiCards rows={rows} dept={dept} />
+      <TabsRoot defaultValue="overview">
+        <TabsList>
+          <Tab value="overview">Overview</Tab>
+          <Tab value="foundation">1. Data foundation</Tab>
+          <Tab value="attrition">2. Attrition & risk</Tab>
+          <Tab value="prod">3. Productivity & hiring</Tab>
+          <Tab value="planning">4. Workforce planning</Tab>
+          <Tab value="recs">Recommendations</Tab>
+        </TabsList>
+        <TabsPanel value="overview" className="pt-4"><OverviewTab rows={rows} dept={dept} /></TabsPanel>
+        <TabsPanel value="foundation" className="pt-4"><FoundationTab rows={rows} /></TabsPanel>
+        <TabsPanel value="attrition" className="pt-4">
+          <div className="flex flex-col gap-8">
+            <SECTION title="High-attrition cohorts"><AttritionTab rows={rows} dept={dept} /></SECTION>
+            <LeaveManagerExit rows={rows} />
+            <SECTION title="Early-warning indicators"><EarlyWarningTab rows={rows} /></SECTION>
+          </div>
+        </TabsPanel>
+        <TabsPanel value="prod" className="pt-4"><ProductivityHiringTab dept={dept} /></TabsPanel>
+        <TabsPanel value="planning" className="pt-4"><PlanningTab dept={dept} /></TabsPanel>
+        <TabsPanel value="recs" className="pt-4"><RecommendationsTab /></TabsPanel>
+      </TabsRoot>
+      <Footnote>Source: PeoplePulse_IBM_Integrated.xlsx (IBM HR Analytics, 1,470 records). Attrition rate = exits / average headcount, assuming exits span 12 months (the dataset has no dates). Risk scores are out-of-fold logistic-regression probabilities. Forecast: 2,000 Monte Carlo runs over individual risk; backfills arrive one quarter after the exit. Location is not in the source. * synthetic data generated to demonstrate the method.</Footnote>
+    </PageLayout>
+  );
+}
+render(<Report />);
+</script>

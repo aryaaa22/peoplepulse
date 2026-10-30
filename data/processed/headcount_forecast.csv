@@ -1,0 +1,65 @@
+scenario,department,quarter,start_headcount,headcount_p50,headcount_p10,headcount_p90,expected_exits
+Base: backfill 80% of exits,Human Resources,2026Q4,51,49.0,47.0,51.0,2.2
+Base: backfill 80% of exits,Human Resources,2027Q1,51,49.0,47.0,50.0,2.0
+Base: backfill 80% of exits,Human Resources,2027Q2,51,48.0,46.0,50.0,2.1
+Base: backfill 80% of exits,Human Resources,2027Q3,51,48.0,45.0,50.0,2.1
+Base: backfill 80% of exits,Research & Development,2026Q4,828,801.0,795.0,807.0,26.9
+Base: backfill 80% of exits,Research & Development,2027Q1,828,798.0,791.0,804.0,25.1
+Base: backfill 80% of exits,Research & Development,2027Q2,828,792.0,784.0,800.0,25.7
+Base: backfill 80% of exits,Research & Development,2027Q3,828,787.0,779.0,795.0,25.7
+Base: backfill 80% of exits,Sales,2026Q4,354,337.0,331.0,342.0,17.4
+Base: backfill 80% of exits,Sales,2027Q1,354,335.0,330.0,340.0,15.7
+Base: backfill 80% of exits,Sales,2027Q2,354,332.0,326.0,337.0,15.9
+Base: backfill 80% of exits,Sales,2027Q3,354,329.0,322.0,334.0,15.7
+Hiring freeze,Human Resources,2026Q4,51,49.0,47.0,51.0,2.2
+Hiring freeze,Human Resources,2027Q1,51,47.0,44.0,49.0,2.1
+Hiring freeze,Human Resources,2027Q2,51,45.0,42.0,48.0,1.9
+Hiring freeze,Human Resources,2027Q3,51,43.0,40.0,46.0,1.7
+Hiring freeze,Research & Development,2026Q4,828,802.0,795.0,807.1,26.7
+Hiring freeze,Research & Development,2027Q1,828,776.0,768.0,785.0,24.9
+Hiring freeze,Research & Development,2027Q2,828,753.0,743.0,763.0,23.4
+Hiring freeze,Research & Development,2027Q3,828,731.0,721.0,742.0,21.8
+Hiring freeze,Sales,2026Q4,354,337.0,332.0,342.0,17.1
+Hiring freeze,Sales,2027Q1,354,321.0,314.0,328.0,15.8
+Hiring freeze,Sales,2027Q2,354,307.0,299.0,315.0,14.3
+Hiring freeze,Sales,2027Q3,354,294.0,285.0,302.0,13.1
+Retention programme (-30% risk for High tier) + 80% backfill,Human Resources,2026Q4,51,49.0,47.0,51.0,2.0
+Retention programme (-30% risk for High tier) + 80% backfill,Human Resources,2027Q1,51,49.0,47.0,50.0,1.9
+Retention programme (-30% risk for High tier) + 80% backfill,Human Resources,2027Q2,51,48.0,46.0,50.0,2.0
+Retention programme (-30% risk for High tier) + 80% backfill,Human Resources,2027Q3,51,48.0,46.0,50.0,2.0
+Retention programme (-30% risk for High tier) + 80% backfill,Research & Development,2026Q4,828,804.0,798.0,810.0,24.2
+Retention programme (-30% risk for High tier) + 80% backfill,Research & Development,2027Q1,828,800.0,794.0,807.0,23.0
+Retention programme (-30% risk for High tier) + 80% backfill,Research & Development,2027Q2,828,795.0,788.0,802.0,23.7
+Retention programme (-30% risk for High tier) + 80% backfill,Research & Development,2027Q3,828,790.0,781.0,797.0,24.4
+Retention programme (-30% risk for High tier) + 80% backfill,Sales,2026Q4,354,340.0,335.0,344.0,14.5
+Retention programme (-30% risk for High tier) + 80% backfill,Sales,2027Q1,354,337.0,332.0,342.0,13.7
+Retention programme (-30% risk for High tier) + 80% backfill,Sales,2027Q2,354,335.0,329.0,340.0,14.0
+Retention programme (-30% risk for High tier) + 80% backfill,Sales,2027Q3,354,331.0,325.0,337.0,14.3
+Growth plan: 80% backfill + 2% net new hires per quarter,Human Resources,2026Q4,51,50.0,48.0,51.0,2.2
+Growth plan: 80% backfill + 2% net new hires per quarter,Human Resources,2027Q1,51,51.0,48.0,52.0,2.1
+Growth plan: 80% backfill + 2% net new hires per quarter,Human Resources,2027Q2,51,51.0,49.0,53.0,2.3
+Growth plan: 80% backfill + 2% net new hires per quarter,Human Resources,2027Q3,51,51.0,49.0,53.0,2.4
+Growth plan: 80% backfill + 2% net new hires per quarter,Research & Development,2026Q4,828,818.0,812.0,824.1,26.8
+Growth plan: 80% backfill + 2% net new hires per quarter,Research & Development,2027Q1,828,830.0,823.0,837.0,26.8
+Growth plan: 80% backfill + 2% net new hires per quarter,Research & Development,2027Q2,828,840.0,831.0,847.0,28.9
+Growth plan: 80% backfill + 2% net new hires per quarter,Research & Development,2027Q3,828,848.0,840.0,857.0,31.0
+Growth plan: 80% backfill + 2% net new hires per quarter,Sales,2026Q4,354,344.0,339.0,349.0,17.3
+Growth plan: 80% backfill + 2% net new hires per quarter,Sales,2027Q1,354,348.0,343.0,353.1,16.3
+Growth plan: 80% backfill + 2% net new hires per quarter,Sales,2027Q2,354,351.0,345.0,357.0,17.2
+Growth plan: 80% backfill + 2% net new hires per quarter,Sales,2027Q3,354,354.0,348.0,360.0,17.8
+Base: backfill 80% of exits,All,2026Q4,1233,1187.0,1173.0,1200.0,46.5
+Base: backfill 80% of exits,All,2027Q1,1233,1182.0,1168.0,1194.0,42.8
+Base: backfill 80% of exits,All,2027Q2,1233,1172.0,1156.0,1187.0,43.7
+Base: backfill 80% of exits,All,2027Q3,1233,1164.0,1146.0,1179.0,43.5
+Growth plan: 80% backfill + 2% net new hires per quarter,All,2026Q4,1233,1212.0,1199.0,1224.1,46.3
+Growth plan: 80% backfill + 2% net new hires per quarter,All,2027Q1,1233,1229.0,1214.0,1242.1,45.2
+Growth plan: 80% backfill + 2% net new hires per quarter,All,2027Q2,1233,1242.0,1225.0,1257.0,48.4
+Growth plan: 80% backfill + 2% net new hires per quarter,All,2027Q3,1233,1253.0,1237.0,1270.0,51.2
+Hiring freeze,All,2026Q4,1233,1188.0,1174.0,1200.1,46.0
+Hiring freeze,All,2027Q1,1233,1144.0,1126.0,1162.0,42.8
+Hiring freeze,All,2027Q2,1233,1105.0,1084.0,1126.0,39.7
+Hiring freeze,All,2027Q3,1233,1068.0,1046.0,1090.0,36.7
+Retention programme (-30% risk for High tier) + 80% backfill,All,2026Q4,1233,1193.0,1180.0,1205.0,40.8
+Retention programme (-30% risk for High tier) + 80% backfill,All,2027Q1,1233,1186.0,1173.0,1199.0,38.5
+Retention programme (-30% risk for High tier) + 80% backfill,All,2027Q2,1233,1178.0,1163.0,1192.0,39.7
+Retention programme (-30% risk for High tier) + 80% backfill,All,2027Q3,1233,1169.0,1152.0,1184.0,40.7
